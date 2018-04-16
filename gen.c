@@ -10,33 +10,46 @@
 #include <time.h>
 
 #define N_R 10
-#define WIDTH 1800
+#define WIDTH 1000
 #define HEIGHT 1000
+#define START 2.5
+#define MULT 5
 
-void affichage(void);
-void keyboard(char key, int state, int x, int y);
-void reshape(int w, int h);
-void quit(void);
-float noise(float x);
-void noise_init(void);
-void color_init(void);
+static void affichage(void);
+static void keyboard(char key, int state, int x, int y);
+static void reshape(int w, int h);
+static void quit(void);
+static float noise(float x);
+static void noise_init(void);
+static void color_init(void);
 
 float atmR, atmG, atmB;
 float oceR, oceG, oceB;
 float lndR, lndG, lndB;
 
-void planet(void);
-void island(float scaleX, float scaleY, float x, float y, float r, float g, float b);
-void atmosphere(void);
+static void planet(void);
+static void island(float scaleX, float scaleY, float x, float y, float r, float g, float b);
+static void atmosphere(void);
 
 static float random_amps[N_R];
 static float random_shifts[N_R];
+
+static unsigned int id;
 
 
 int main(int argc, char **argv) {
 	srand(time(NULL));
 	
+	FILE * fid = fopen("id", "r");
 	
+	if(fid) {
+		fscanf(fid, "%u", &id);
+	} else {
+		system("mkdir planets");
+		fid = fopen("id", "w");
+		id = 0;
+	}
+	fclose(fid);
 	
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA | GLUT_STENCIL | GLUT_ALPHA);
@@ -87,17 +100,17 @@ void affichage(void) {
 	
 	glStencilFunc(GL_EQUAL, 1, 0xFF);
 	planet();
-    int m = rand() % 10 + 2;
+    int m = rand() % 20 + 2;
     for(int i = 0; i < m; i++) {
-		island(0.5, 0.5, 7 + (float)rand()/RAND_MAX*4, 3 + (float)rand()/RAND_MAX*4, lndR, lndG, lndB);
+		island(0.5, 0.5, START + (float)rand()/RAND_MAX*MULT, START + (float)rand()/RAND_MAX*MULT, lndR, lndG, lndB);
 	}
 	
-	island(0.4, 0.4, 7 + (float)rand()/RAND_MAX*4, 3 + (float)rand()/RAND_MAX*4, lndR, lndG, lndB);
-	island(0.3, 0.3, 7 + (float)rand()/RAND_MAX*4, 3 + (float)rand()/RAND_MAX*4, lndR, lndG, lndB);
-	island(0.2, 0.2, 7 + (float)rand()/RAND_MAX*4, 3 + (float)rand()/RAND_MAX*4, lndR, lndG, lndB);
+	island(0.4, 0.4, START + (float)rand()/RAND_MAX*MULT, START + (float)rand()/RAND_MAX*MULT, lndR, lndG, lndB);
+	island(0.3, 0.3, START + (float)rand()/RAND_MAX*MULT, START + (float)rand()/RAND_MAX*MULT, lndR, lndG, lndB);
+	island(0.2, 0.2, START + (float)rand()/RAND_MAX*MULT, START + (float)rand()/RAND_MAX*MULT, lndR, lndG, lndB);
 	if(rand()%3 < 2) {
-		island(1.2, 0.5, 9, 8.3, 1.0, 1.0, 1.0);
-		island(1.2, 0.5, 9, 1.7, 1.0, 1.0, 1.0);
+		island(1.2, 0.5, 5, 8.3, 1.0, 1.0, 1.0);
+		island(1.2, 0.5, 5, 1.7, 1.0, 1.0, 1.0);
 	}
 	
 	glStencilFunc(GL_EQUAL, 0, 0xFF);
@@ -106,7 +119,7 @@ void affichage(void) {
 	glBegin(GL_POINTS);
 	glColor3f(1.0 - (float)rand()/(8*RAND_MAX), 1.0 - (float)rand()/(8*RAND_MAX), 1.0 - (float)rand()/(8*RAND_MAX));
 	for(int i = 0; i < ne; i++) {
-		glVertex2f(19*(float)rand()/RAND_MAX, 10*(float)rand()/RAND_MAX);
+		glVertex2f(10*(float)rand()/RAND_MAX, 10*(float)rand()/RAND_MAX);
 	}
 	glEnd();
 	
@@ -123,6 +136,11 @@ void affichage(void) {
 	fprintf(im, "255\n");
 	fwrite(image, 1, WIDTH * HEIGHT * 3, im);
 	fclose(im);
+	char str[50];
+	
+	sprintf(str, "convert stars.ppm planets/world%u.jpg", id++);
+	
+	system(str);
 	
 	//glutPostRedisplay();
 	glutSwapBuffers();
@@ -132,11 +150,11 @@ void planet(void) {
 	glPushMatrix();
 	float rad = 3.0f;
 	
-	glTranslatef(9.0, 5.0, 0.0);
+	glTranslatef(5.0, 5.0, 0.0);
 
 	glBegin(GL_POLYGON);
 	glColor3f(oceR, oceG, oceB);
-	for(float x = 0; x < 2*M_PI; x += M_PI/24.) {
+	for(float x = 0; x < 2*M_PI; x += M_PI/35.) {
 		glVertex3f(rad*sin(x), rad*cos(x), 0.0);
 	}
 	glEnd();
@@ -147,13 +165,13 @@ void atmosphere(void) {
 	glPushMatrix();
 	float rad = 3.2f;
 	
-	glTranslatef(9.0, 5.0, 0.0);
+	glTranslatef(5.0, 5.0, 0.0);
 
 	glBegin(GL_TRIANGLE_FAN);
-	glColor4f(atmR, atmG, atmB, 0.3);
+	glColor4f(atmR, atmG, atmB, 0.2);
 	glVertex3f(0.0, 0.0, 0.0);
-	glColor4f(1.1*atmR, 1.1*atmG, 1.1*atmB, 0.6);
-	for(float x = 0; x <= 2*M_PI+0.01; x += M_PI/24.) {
+	glColor4f(1.1*atmR, 1.1*atmG, 1.1*atmB, 0.4);
+	for(float x = 0; x <= 2*M_PI+0.01; x += M_PI/35.) {
 		glVertex3f(rad*sin(x), rad*cos(x), 0.0);
 	}
 	glEnd();
@@ -213,87 +231,98 @@ void color_init(void) {
 	
 	switch(tp_a) {
 		case 0:
-		atmR = 0.2;
-		atmG = 0.2;
-		atmB = 0.8;
+		atmR = 151;
+		atmG = 226;
+		atmB = 239;
 		break;
 		case 1:
-		atmR = 0.8;
-		atmG = 0.2;
-		atmB = 0.8;
+		atmR = 122;
+		atmG = 173;
+		atmB = 255;
 		break;
 		case 2:
-		atmR = 0.3;
-		atmG = 0.8;
-		atmB = 0.4;
+		atmR = 209;
+		atmG = 226;
+		atmB = 255;
 		break;
 		case 3:
-		atmR = 0.7;
-		atmG = 0.8;
-		atmB = 1.0;
+		atmR = 239;
+		atmG = 165;
+		atmB = 100;
 		break;
 		case 4:
-		atmR = 0.7;
-		atmG = 0.4;
-		atmB = 1.0;
+		atmR = 182;
+		atmG = 146;
+		atmB = 209;
 		break;
 	}
+		atmR /= 255.0f;
+		atmG /= 255.0f;
+		atmB /= 255.0f;
 	
 	switch(tp_o) {
 		case 0:
-		oceR = 0.0;
-		oceG = 0.0;
-		oceB = 0.5;
+		oceR = 0;
+		oceG = 10;
+		oceB = 117;
 		break;
 		case 1:
-		oceR = 0.3;
-		oceG = 0.0;
-		oceB = 0.5;
+		oceR = 7;
+		oceG = 94;
+		oceB = 145;
 		break;
 		case 2:
-		oceR = 0.1;
-		oceG = 0.7;
-		oceB = 0.2;
+		oceR = 54;
+		oceG = 4;
+		oceB = 104;
 		break;
 		case 3:
-		oceR = 0.5;
-		oceG = 0.7;
-		oceB = 0.2;
+		oceR = 112;
+		oceG = 60;
+		oceB = 0;
 		break;
 		case 4:
-		oceR = 0.1;
-		oceG = 0.7;
-		oceB = 1.0;
+		oceR = 75;
+		oceG = 75;
+		oceB = 100;
 		break;
 	}
 	
+	oceR /= 255.0f;
+	oceG /= 255.0f;
+	oceB /= 255.0f;
+	
 	switch(tp_l) {
 		case 0:
-		lndR = 1.0;
-		lndG = 0.8;
-		lndB = 0.5;
+		lndR = 16;
+		lndG = 81;
+		lndB = 0;
 		break;
 		case 1:
-		lndR = 1.0;
-		lndG = 0.5;
-		lndB = 0.2;
+		lndR = 252;
+		lndG = 228;
+		lndB = 141;
 		break;
 		case 2:
-		lndR = 0.3;
-		lndG = 0.6;
-		lndB = 0.1;
+		lndR = 255;
+		lndG = 183;
+		lndB = 76;
 		break;
 		case 3:
-		lndR = 0.7;
-		lndG = 0.7;
-		lndB = 0.0;
+		lndR = 28;
+		lndG = 99;
+		lndB = 99;
 		break;
 		case 4:
-		lndR = 0.8;
-		lndG = 0.4;
-		lndB = 0.2;
+		lndR = 100;
+		lndG = 60;
+		lndB = 20;
 		break;
 	}
+	
+	lndR /= 255.0f;
+	lndG /= 255.0f;
+	lndB /= 255.0f;
 }
 
 void reshape(int w, int h) {
@@ -310,6 +339,10 @@ void keyboard(char key, int state, int x, int y) {
 
 
 void quit(void) {
+	FILE * fid = fopen("id", "w");
+	fprintf(fid, "%u", id);
+	fclose(fid);
+	system("rm -f *.ppm");
 	glutDestroyWindow(1);
 	exit(0);
 }
