@@ -10,6 +10,8 @@
 #include <time.h>
 
 #define N_R 10
+#define WIDTH 1800
+#define HEIGHT 1000
 
 void affichage(void);
 void keyboard(char key, int state, int x, int y);
@@ -39,7 +41,7 @@ int main(int argc, char **argv) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA | GLUT_STENCIL | GLUT_ALPHA);
 	glutInitWindowPosition(200,200);
-	glutInitWindowSize(500,500);
+	glutInitWindowSize(WIDTH,HEIGHT);
 	glutCreateWindow("Planet");
 	
 	
@@ -60,7 +62,7 @@ void affichage(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(0, 10, 0, 10, -1, 1);
+	glOrtho(0, WIDTH/100., 0, HEIGHT/100., -1, 1);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	color_init();
@@ -87,15 +89,15 @@ void affichage(void) {
 	planet();
     int m = rand() % 10 + 2;
     for(int i = 0; i < m; i++) {
-		island(0.5, 0.5, 3 + (float)rand()/RAND_MAX*4, 3 + (float)rand()/RAND_MAX*4, lndR, lndG, lndB);
+		island(0.5, 0.5, 7 + (float)rand()/RAND_MAX*4, 3 + (float)rand()/RAND_MAX*4, lndR, lndG, lndB);
 	}
 	
-	island(0.4, 0.4, 3 + (float)rand()/RAND_MAX*4, 3 + (float)rand()/RAND_MAX*4, lndR, lndG, lndB);
-	island(0.3, 0.3, 3 + (float)rand()/RAND_MAX*4, 3 + (float)rand()/RAND_MAX*4, lndR, lndG, lndB);
-	island(0.2, 0.2, 3 + (float)rand()/RAND_MAX*4, 3 + (float)rand()/RAND_MAX*4, lndR, lndG, lndB);
+	island(0.4, 0.4, 7 + (float)rand()/RAND_MAX*4, 3 + (float)rand()/RAND_MAX*4, lndR, lndG, lndB);
+	island(0.3, 0.3, 7 + (float)rand()/RAND_MAX*4, 3 + (float)rand()/RAND_MAX*4, lndR, lndG, lndB);
+	island(0.2, 0.2, 7 + (float)rand()/RAND_MAX*4, 3 + (float)rand()/RAND_MAX*4, lndR, lndG, lndB);
 	if(rand()%3 < 2) {
-		island(1.2, 0.5, 5, 8.3, 1.0, 1.0, 1.0);
-		island(1.2, 0.5, 5, 1.7, 1.0, 1.0, 1.0);
+		island(1.2, 0.5, 9, 8.3, 1.0, 1.0, 1.0);
+		island(1.2, 0.5, 9, 1.7, 1.0, 1.0, 1.0);
 	}
 	
 	glStencilFunc(GL_EQUAL, 0, 0xFF);
@@ -104,12 +106,24 @@ void affichage(void) {
 	glBegin(GL_POINTS);
 	glColor3f(1.0 - (float)rand()/(8*RAND_MAX), 1.0 - (float)rand()/(8*RAND_MAX), 1.0 - (float)rand()/(8*RAND_MAX));
 	for(int i = 0; i < ne; i++) {
-		glVertex2f(10*(float)rand()/RAND_MAX, 10*(float)rand()/RAND_MAX);
+		glVertex2f(19*(float)rand()/RAND_MAX, 10*(float)rand()/RAND_MAX);
 	}
 	glEnd();
 	
 	glDisable(GL_STENCIL_TEST);
 	atmosphere();
+	
+	unsigned char image[ WIDTH * HEIGHT * 3 ];
+	glReadPixels(0, 0, WIDTH, HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, image);
+	FILE * im;
+	im = fopen("stars.ppm", "wb");
+	
+	fprintf(im, "P6\n");
+	fprintf(im, "%d %d\n", WIDTH, HEIGHT);
+	fprintf(im, "255\n");
+	fwrite(image, 1, WIDTH * HEIGHT * 3, im);
+	fclose(im);
+	
 	//glutPostRedisplay();
 	glutSwapBuffers();
 }
@@ -118,7 +132,7 @@ void planet(void) {
 	glPushMatrix();
 	float rad = 3.0f;
 	
-	glTranslatef(5.0, 5.0, 0.0);
+	glTranslatef(9.0, 5.0, 0.0);
 
 	glBegin(GL_POLYGON);
 	glColor3f(oceR, oceG, oceB);
@@ -133,7 +147,7 @@ void atmosphere(void) {
 	glPushMatrix();
 	float rad = 3.2f;
 	
-	glTranslatef(5.0, 5.0, 0.0);
+	glTranslatef(9.0, 5.0, 0.0);
 
 	glBegin(GL_TRIANGLE_FAN);
 	glColor4f(atmR, atmG, atmB, 0.3);
@@ -283,7 +297,7 @@ void color_init(void) {
 }
 
 void reshape(int w, int h) {
-	glutReshapeWindow(500, 500);
+	glutReshapeWindow(WIDTH, HEIGHT);
 }
 
 void keyboard(char key, int state, int x, int y) {
